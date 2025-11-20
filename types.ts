@@ -1,4 +1,3 @@
-
 export enum TileType {
   FLOOR = 0,      // Standard wood floor
   WALL = 1,       // Brick/Wood wall
@@ -15,7 +14,9 @@ export enum TileType {
   BENCH = 12,     // Church Pews
   TREE = 13,      // Nature
   FLOWER = 14,    // Nature
-  CANDLE = 15     // Light source
+  CANDLE = 15,    // Light source
+  WINDOW = 16,    // Stained Glass
+  PODIUM = 17     // Speaker stand
 }
 
 export interface Position {
@@ -29,6 +30,12 @@ export interface CharacterAppearance {
   pantsColor: string;
   skinColor: string;
   hasHat: boolean;
+}
+
+export interface NPC {
+  id: string;
+  pos: Position;
+  appearance: CharacterAppearance;
 }
 
 export interface FuneralData {
@@ -53,6 +60,7 @@ export interface GameMap {
   height: number;
   tiles: TileType[][];
   interactables: Record<string, Interactable>;
+  npcs: NPC[];
 }
 
 export interface Interactable {
