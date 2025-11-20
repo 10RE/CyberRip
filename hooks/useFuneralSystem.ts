@@ -6,7 +6,7 @@ const INITIAL_FUNERAL: FuneralData = {
   id: 'init',
   deceasedName: 'Your Motivation',
   causeOfDeath: 'Doomscrolling',
-  eulogy: "It died as it lived: consuming content without creating anything. It was tragic.",
+  eulogy: "It died as it lived: consuming content without creating anything. It was tragic. We gathered here today not to mourn, but to scroll past this moment.",
   timestamp: Date.now(),
   attendees: 0
 };
@@ -35,17 +35,35 @@ export const useFuneralSystem = () => {
       setQueue(prev => [...prev, newFuneral]);
   };
 
-  // Chunking Helper
-  const chunkText = (text: string, wordsPerChunk: number = 4): string[] => {
-      const words = text.split(' ');
-      const chunks = [];
-      for (let i = 0; i < words.length; i += wordsPerChunk) {
-          let chunk = words.slice(i, i + wordsPerChunk).join(' ');
-          if (i > 0) chunk = '...' + chunk;
-          if (i + wordsPerChunk < words.length) chunk = chunk + '...';
-          chunks.push(chunk);
-      }
-      return chunks;
+  // Improved Chunking: Split by sentence, then by length
+  const chunkText = (text: string): string[] => {
+      // Regex looks for sentence terminators (.!?) and splits after them
+      // matching the terminator and following whitespace
+      const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+      const finalChunks: string[] = [];
+
+      sentences.forEach(sentence => {
+          const trimmed = sentence.trim();
+          if (!trimmed) return;
+
+          // If sentence is too long (> 15 words), split it roughly
+          const words = trimmed.split(/\s+/);
+          if (words.length > 15) {
+              let chunk: string[] = [];
+              words.forEach(word => {
+                  chunk.push(word);
+                  if (chunk.length >= 10) {
+                      finalChunks.push(chunk.join(' ') + '...');
+                      chunk = [];
+                  }
+              });
+              if (chunk.length > 0) finalChunks.push(chunk.join(' '));
+          } else {
+              finalChunks.push(trimmed);
+          }
+      });
+      
+      return finalChunks;
   };
 
   // Ceremony Loop
@@ -57,45 +75,80 @@ export const useFuneralSystem = () => {
         const idx = currentChunkIndexRef.current;
 
         if (idx < chunks.length) {
+            // Show bubble
             setCurrentSpeechBubble(chunks[idx]);
             currentChunkIndexRef.current++;
-            // Slow reading speed: 2.5 seconds per bubble
-            timer = setTimeout(runPreachingLoop, 2500);
+            
+            // Calculate reading time based on length, min 2.5s, max 5s
+            const readTime = Math.min(5000, Math.max(2500, chunks[idx].length * 60));
+            
+            // Display time
+            timer = setTimeout(() => {
+                // Hide bubble (Gap)
+                setCurrentSpeechBubble(null);
+                // Gap duration (1s)
+                timer = setTimeout(runPreachingLoop, 1000);
+            }, readTime);
         } else {
-            // Done preaching, move to Amen
+            // Done preaching
             setCurrentSpeechBubble(null);
-            setDirectorPhase(DirectorPhase.AMEN);
+            setDirectorPhase(DirectorPhase.PRE_AMEN);
         }
     };
 
+    // STATE MACHINE
     if (directorPhase === DirectorPhase.IDLE && queue.length > 0 && !activeCeremony) {
-        // INIT CEREMONY
         const next = queue[0];
         setActiveCeremony(next);
         setQueue(prev => prev.slice(1));
+        setDirectorPhase(DirectorPhase.ARRIVAL);
         
-        // Prepare Speech
         speechChunksRef.current = chunkText(next.eulogy);
         currentChunkIndexRef.current = 0;
-        
-        setDirectorPhase(DirectorPhase.PREACHING);
-    } 
+    }
+    else if (directorPhase === DirectorPhase.ARRIVAL) {
+        // Hearse drives in (4s animation)
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.PROCESSION), 4000);
+    }
+    else if (directorPhase === DirectorPhase.PROCESSION) {
+        // Bearers walk to Altar (Slower: 12s)
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.BEARERS_RETURN), 12000);
+    }
+    else if (directorPhase === DirectorPhase.BEARERS_RETURN) {
+        // Bearers walk back to CHAPEL DOOR (y=17) from Altar (y=8). 
+        // Slower: 6s
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.PREACHING), 6000);
+    }
     else if (directorPhase === DirectorPhase.PREACHING) {
         if (currentChunkIndexRef.current === 0) {
-            runPreachingLoop();
+            // Small delay before speaking starts
+            timer = setTimeout(runPreachingLoop, 1000);
         }
     }
+    else if (directorPhase === DirectorPhase.PRE_AMEN) {
+        // "Rest in Peace [Name]" (3s)
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.AMEN), 3500);
+    }
     else if (directorPhase === DirectorPhase.AMEN) {
-        // AMEN lasts longer now (4 seconds)
-        timer = setTimeout(() => setDirectorPhase(DirectorPhase.BURIAL), 4000);
+        // "AMEN" (3s)
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.BURIAL), 3000);
     }
     else if (directorPhase === DirectorPhase.BURIAL) {
+        // Coffin Sinks (4s)
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.BEARERS_LEAVE), 4000); 
+    }
+    else if (directorPhase === DirectorPhase.BEARERS_LEAVE) {
+        // Bearers walk out from Chapel Door to Main Gate (6s)
+        if (activeCeremony) setHistory(prev => [activeCeremony, ...prev]);
+        timer = setTimeout(() => setDirectorPhase(DirectorPhase.HEARSE_LEAVE), 6000);
+    }
+    else if (directorPhase === DirectorPhase.HEARSE_LEAVE) {
+        // Hearse drives away (4s)
         timer = setTimeout(() => {
-            if (activeCeremony) setHistory(prev => [activeCeremony, ...prev]);
             setDirectorPhase(DirectorPhase.IDLE);
             setActiveCeremony(null);
             setCurrentSpeechBubble(null);
-        }, 4000); 
+        }, 4000);
     }
 
     return () => clearTimeout(timer);

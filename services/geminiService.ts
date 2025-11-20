@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize the client with the API key directly from the environment variable as per guidelines.
@@ -11,9 +10,10 @@ export const generateWittyEulogy = async (name: string, cause: string): Promise<
 
   try {
     const prompt = `
-      Write a very short, witty, cynical, and slightly dark humorous eulogy for "${name}" who died from "${cause}".
+      Write a witty, cynical, and slightly dark humorous eulogy for "${name}" who died from "${cause}".
       The tone should be like a 8-bit RPG NPC or a bored funeral director.
-      Maximum 50 words. Do not be overly offensive, just satirical.
+      Target length: 75 words. 
+      Break it into distinct sentences. Do not be overly offensive, just satirical.
       If the cause is abstract (e.g. "My motivation"), personify it.
     `;
 

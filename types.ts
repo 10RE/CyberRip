@@ -71,9 +71,15 @@ export interface Interactable {
 
 export enum DirectorPhase {
   IDLE = 'idle',
-  PREACHING = 'preaching',
+  ARRIVAL = 'arrival',       // Hearse arrives
+  PROCESSION = 'procession', // Pallbearers carry coffin to altar
+  BEARERS_RETURN = 'bearers_return', // Bearers walk back to door
+  PREACHING = 'preaching',   // Ceremony
+  PRE_AMEN = 'pre_amen',     // "Rest in Peace"
   AMEN = 'amen',
-  BURIAL = 'burial'
+  BURIAL = 'burial',
+  BEARERS_LEAVE = 'bearers_leave', // Bearers exit
+  HEARSE_LEAVE = 'hearse_leave'    // Hearse drives off
 }
 
 export const TILE_SIZE = 48;

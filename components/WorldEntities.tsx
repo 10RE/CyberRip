@@ -22,11 +22,10 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
   const isInChapel = (pos: {x: number, y: number}) => {
       const tileX = pos.x / TILE_SIZE;
       const tileY = pos.y / TILE_SIZE;
-      // Rough bounds of the main chapel room
       return tileX >= 10 && tileX <= 29 && tileY >= 6 && tileY <= 17;
   };
 
-  const renderCharacter = (appearance: any, direction: string = 'down', isMoving: boolean = false, isSitting: boolean = false) => (
+  const renderCharacter = (appearance: any, direction: string = 'down', isMoving: boolean = false, isSitting: boolean = false, glasses: boolean = false) => (
       <div className={`w-8 h-10 relative ${isMoving ? 'animate-bounce' : ''} ${isSitting ? 'translate-y-2' : ''} drop-shadow-lg`}>
           <div className="absolute bottom-0 left-1 w-6 h-4 rounded-b-sm" style={{backgroundColor: appearance.pantsColor}}></div>
           <div className="absolute bottom-4 left-1 w-6 h-4 rounded-t-sm" style={{backgroundColor: appearance.shirtColor}}></div>
@@ -39,11 +38,138 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
           )}
           <div className="absolute top-3 left-2.5 w-1 h-1 bg-black z-30"></div>
           <div className="absolute top-3 right-2.5 w-1 h-1 bg-black z-30"></div>
+          {glasses && (
+              <div className="absolute top-3 left-2 w-4 h-1 bg-black z-40"></div>
+          )}
       </div>
   );
 
+  const renderCoffin = () => (
+      <div className="w-24 h-12 flex flex-col shadow-2xl items-center justify-center relative">
+        <div className="w-full h-full bg-[#5d4037] border-4 border-[#3e2723] relative rounded flex items-center justify-center overflow-hidden">
+            <div className="w-full h-full opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#000_10px,#000_12px)]"></div>
+            <div className="w-16 h-2 bg-[#e4b85d] absolute shadow-sm"></div>
+            <div className="w-2 h-10 bg-[#e4b85d] absolute left-1/3 shadow-sm"></div>
+        </div>
+    </div>
+  );
+
+  const renderBearerGroup = (isCarrying: boolean = false) => {
+     const b1 = {pantsColor:'black', shirtColor:'black', skinColor:'#ffdbac', hatColor:'black', hasHat:false};
+     const b2 = {pantsColor:'black', shirtColor:'black', skinColor:'#8d5524', hatColor:'black', hasHat:false};
+     const b3 = {pantsColor:'black', shirtColor:'black', skinColor:'#e0ac69', hatColor:'black', hasHat:false};
+     const b4 = {pantsColor:'black', shirtColor:'black', skinColor:'#f1c27d', hatColor:'black', hasHat:false};
+
+     return (
+         <div className="relative w-24 h-12 flex items-center justify-center">
+             {isCarrying && renderCoffin()}
+             <div className="absolute -top-8 -left-6">{renderCharacter(b1, 'up', true, false, true)}</div>
+             <div className="absolute -top-8 -right-6">{renderCharacter(b2, 'up', true, false, true)}</div>
+             <div className="absolute -bottom-6 -left-6">{renderCharacter(b3, 'up', true, false, true)}</div>
+             <div className="absolute -bottom-6 -right-6">{renderCharacter(b4, 'up', true, false, true)}</div>
+         </div>
+     );
+  }
+
+  // Bubble only shows if active phase AND content exists
+  const shouldShowBubble = 
+      (directorPhase === DirectorPhase.PREACHING && currentSpeechBubble) ||
+      directorPhase === DirectorPhase.PRE_AMEN ||
+      directorPhase === DirectorPhase.AMEN ||
+      directorPhase === DirectorPhase.BURIAL;
+
   return (
     <>
+        {/* --- HEARSE --- */}
+        {activeCeremony && directorPhase !== DirectorPhase.IDLE && (
+            <div 
+                style={{
+                    position: 'absolute',
+                    left: 18 * TILE_SIZE,
+                    top: directorPhase === DirectorPhase.HEARSE_LEAVE ? 35 * TILE_SIZE : 25 * TILE_SIZE,
+                    width: 160,
+                    height: 80,
+                    zIndex: 25,
+                    // CSS transition handles the LEAVE phase movement
+                    transition: 'top 4s ease-in',
+                }}
+                // Use animation for the ARRIVAL slide-in
+                className={directorPhase === DirectorPhase.ARRIVAL ? 'hearse-arrive' : ''}
+            >
+                <style>{`
+                    @keyframes driveIn { from { top: ${35 * TILE_SIZE}px; } to { top: ${25 * TILE_SIZE}px; } }
+                    .hearse-arrive { animation: driveIn 4s ease-out forwards; }
+                `}</style>
+                <div className="w-full h-full bg-black border-4 border-gray-800 relative rounded-lg shadow-2xl">
+                    <div className="absolute top-2 left-2 right-2 h-1/3 bg-blue-900 border border-gray-600"></div>
+                    <div className="absolute -bottom-4 left-4 w-10 h-10 bg-gray-900 rounded-full border-4 border-gray-500 animate-spin"></div>
+                    <div className="absolute -bottom-4 right-4 w-10 h-10 bg-gray-900 rounded-full border-4 border-gray-500 animate-spin"></div>
+                    <div className="absolute -top-2 left-2 w-4 h-2 bg-yellow-500 animate-pulse shadow-[0_0_10px_yellow]"></div>
+                    <div className="absolute -top-2 right-2 w-4 h-2 bg-yellow-500 animate-pulse shadow-[0_0_10px_yellow]"></div>
+                </div>
+            </div>
+        )}
+
+        {/* --- BEARERS LOGIC --- */}
+        
+        {/* 1. PROCESSION: Walk to Altar (y=24 -> y=8) SLOWLY (12s) */}
+        {directorPhase === DirectorPhase.PROCESSION && (
+             <div style={{ position: 'absolute', left: 19 * TILE_SIZE, top: 8 * TILE_SIZE, zIndex: 30 }} className="procession-walk">
+                 <style>{`@keyframes walkUp { from { top: ${24 * TILE_SIZE}px; } to { top: ${8 * TILE_SIZE + 10}px; } } .procession-walk { animation: walkUp 12s linear forwards; }`}</style>
+                 {renderBearerGroup(true)}
+             </div>
+        )}
+
+        {/* 2. RETURN: Walk back to CHAPEL DOOR (y=8 -> y=17) (6s) */}
+        {directorPhase === DirectorPhase.BEARERS_RETURN && (
+            <div style={{ position: 'absolute', left: 19 * TILE_SIZE, top: 17 * TILE_SIZE, zIndex: 30 }} className="bearers-return">
+                <style>{`@keyframes walkBack { from { top: ${8 * TILE_SIZE}px; } to { top: ${17 * TILE_SIZE}px; } } .bearers-return { animation: walkBack 6s linear forwards; }`}</style>
+                {renderBearerGroup(false)}
+            </div>
+        )}
+
+        {/* 3. WATCHING: Static at Chapel Door (Entrance to Ceremony Room) */}
+        {(directorPhase === DirectorPhase.PREACHING || directorPhase === DirectorPhase.PRE_AMEN || directorPhase === DirectorPhase.AMEN || directorPhase === DirectorPhase.BURIAL) && (
+            <div style={{ position: 'absolute', left: 19 * TILE_SIZE, top: 17 * TILE_SIZE, zIndex: 30 }}>
+                {renderBearerGroup(false)}
+            </div>
+        )}
+
+        {/* 4. LEAVE: Walk out from Chapel Door to Main Gate (y=17 -> y=25) (6s) */}
+        {directorPhase === DirectorPhase.BEARERS_LEAVE && (
+            <div style={{ position: 'absolute', left: 19 * TILE_SIZE, top: 25 * TILE_SIZE, zIndex: 30 }} className="bearers-leave">
+                <style>{`@keyframes walkOut { from { top: ${17 * TILE_SIZE}px; } to { top: ${25 * TILE_SIZE}px; } } .bearers-leave { animation: walkOut 6s linear forwards; }`}</style>
+                {renderBearerGroup(false)}
+            </div>
+        )}
+
+
+        {/* --- STATIC COFFIN (At Altar) --- */}
+        {activeCeremony && (
+            directorPhase === DirectorPhase.BEARERS_RETURN || 
+            directorPhase === DirectorPhase.PREACHING || 
+            directorPhase === DirectorPhase.PRE_AMEN || 
+            directorPhase === DirectorPhase.AMEN || 
+            directorPhase === DirectorPhase.BURIAL
+        ) && (
+            <div
+            style={{
+                position: 'absolute',
+                left: 19 * TILE_SIZE, 
+                top: 8 * TILE_SIZE + 10,
+                width: 96, 
+                height: 48, 
+                zIndex: 25, 
+                transition: 'all 3s ease-in-out',
+                transform: directorPhase === DirectorPhase.BURIAL ? 'translateY(48px)' : 'translateY(0)',
+                opacity: directorPhase === DirectorPhase.BURIAL ? 0 : 1
+            }}
+            className="flex flex-col items-center justify-center"
+            >
+                {renderCoffin()}
+            </div>
+        )}
+
         {/* --- NPCS --- */}
         {npcs.map(npc => (
             <div 
@@ -64,33 +190,6 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
             </div>
         ))}
 
-        {/* --- HORIZONTAL COFFIN (Chapel Aisle) --- */}
-        {activeCeremony && (
-            <div
-            style={{
-                position: 'absolute',
-                left: 19 * TILE_SIZE, 
-                top: 8 * TILE_SIZE + 10,
-                width: 96, // 2 Tiles Wide
-                height: 48, // 1 Tile High
-                zIndex: 25, // Higher zIndex to be on top of carpet/altar
-                transition: 'all 3s ease-in-out',
-                transform: directorPhase === DirectorPhase.BURIAL ? 'translateY(48px)' : 'translateY(0)',
-                opacity: directorPhase === DirectorPhase.BURIAL ? 0 : 1
-            }}
-            className="flex flex-col shadow-2xl items-center justify-center"
-            >
-                <div className="w-full h-full bg-[#5d4037] border-4 border-[#3e2723] relative rounded flex items-center justify-center overflow-hidden">
-                    {/* Clean Wood Texture */}
-                    <div className="w-full h-full opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#000_10px,#000_12px)]"></div>
-                    
-                    {/* Cross Horizontal */}
-                    <div className="w-16 h-2 bg-[#e4b85d] absolute shadow-sm"></div>
-                    <div className="w-2 h-10 bg-[#e4b85d] absolute left-1/3 shadow-sm"></div>
-                </div>
-            </div>
-        )}
-
         {/* --- PRIEST (x=19, y=7) --- */}
         <div 
         style={{
@@ -100,7 +199,7 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
         }}
         className="flex items-center justify-center"
         >
-            <div className={`w-8 h-10 bg-purple-900 relative flex justify-center rounded-t-xl drop-shadow-lg ${directorPhase === DirectorPhase.PREACHING ? 'animate-pulse' : 'animate-float'}`}>
+            <div className={`w-8 h-10 bg-purple-900 relative flex justify-center rounded-t-xl drop-shadow-lg ${(directorPhase === DirectorPhase.PREACHING || directorPhase === DirectorPhase.PRE_AMEN) ? 'animate-pulse' : 'animate-float'}`}>
                 <div className="w-full h-2 bg-yellow-500 absolute top-4"></div>
                 <div className="w-2 h-2 bg-[#ffdbac] absolute top-1 rounded-full"></div>
                 <div className="absolute top-2 left-3 w-0.5 h-0.5 bg-black"></div>
@@ -108,13 +207,16 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
             </div>
             
             {/* SPEECH BUBBLE */}
-            {directorPhase !== DirectorPhase.IDLE && activeCeremony && (
-                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-48 bg-white p-3 rounded-lg border-2 border-black text-[9px] z-50 flex flex-col items-center text-center shadow-xl">
+            {shouldShowBubble && activeCeremony && (
+                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-64 bg-white p-3 rounded-lg border-2 border-black text-[10px] z-[60] flex flex-col items-center text-center shadow-xl">
                     {directorPhase === DirectorPhase.PREACHING && currentSpeechBubble && (
                         <>
-                        <span className="font-bold mb-1 text-red-600 text-xs">{activeCeremony.deceasedName}</span>
-                        <span className="italic text-gray-800 leading-tight font-serif text-sm">"{currentSpeechBubble}"</span>
+                        <span className="font-bold mb-1 text-red-600 text-xs block">{activeCeremony.deceasedName}</span>
+                        <span className="italic text-gray-800 leading-tight font-serif">"{currentSpeechBubble}"</span>
                         </>
+                    )}
+                     {directorPhase === DirectorPhase.PRE_AMEN && (
+                        <span className="italic text-gray-800 leading-tight font-serif">Rest in peace, {activeCeremony.deceasedName}.</span>
                     )}
                     {directorPhase === DirectorPhase.AMEN && (
                         <span className="text-xl font-bold text-blue-800 tracking-widest">AMEN.</span>
@@ -127,11 +229,10 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
             )}
         </div>
 
-        {/* --- RECEPTIONIST (x=25, y=20) --- */}
+        {/* --- RECEPTIONIST --- */}
         <div 
         style={{
             width: TILE_SIZE, height: TILE_SIZE,
-            // Moved higher (-25px) so head sticks out nicely over the high desk
             position: 'absolute', left: 25 * TILE_SIZE, top: 20 * TILE_SIZE - 25,
             zIndex: 9 
         }}
@@ -140,14 +241,11 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({
             <div className="w-8 h-10 bg-blue-800 relative flex justify-center rounded-t-xl drop-shadow-lg">
                 <div className="w-full h-2 bg-white absolute top-4"></div>
                 <div className="w-2 h-2 bg-[#ffdbac] absolute top-1 rounded-full"></div>
-                 {/* Face */}
                 <div className="absolute top-2 left-3 w-0.5 h-0.5 bg-black"></div>
                 <div className="absolute top-2 right-3 w-0.5 h-0.5 bg-black"></div>
-                {/* Glasses */}
                  <div className="absolute top-2 left-2 w-4 h-1 border-b border-black"></div>
             </div>
             
-            {/* Proximity Speech Bubble */}
             {nearbyInteractableId && nearbyInteractableId.includes('receptionist') && (
                 <div className="absolute -top-10 bg-white px-2 py-1 rounded-lg border-2 border-black text-[8px] whitespace-nowrap animate-bounce z-50">
                     How can I help?
