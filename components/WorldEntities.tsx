@@ -11,22 +11,30 @@ interface WorldEntitiesProps {
 export const WorldEntities: React.FC<WorldEntitiesProps> = ({ player, directorPhase, activeCeremony }) => {
   return (
     <>
-        {/* --- DYNAMIC COFFIN (Chapel Aisle: x=8, y=6) --- */}
+        {/* --- ACTUAL SIZE COFFIN (Chapel Aisle: x=19, y=8) - Updated for new map --- */}
         <div
         style={{
             position: 'absolute',
-            left: 8 * TILE_SIZE,
-            top: 6 * TILE_SIZE,
-            width: TILE_SIZE,
-            height: TILE_SIZE,
+            left: 19 * TILE_SIZE + 4, // Centered in aisle
+            top: 8 * TILE_SIZE,
+            width: 40,
+            height: 70,
             zIndex: 9,
             transition: 'all 3s ease-in-out',
             transform: directorPhase === DirectorPhase.BURIAL ? 'translateY(48px)' : 'translateY(0)',
             opacity: directorPhase === DirectorPhase.BURIAL ? 0 : 1
         }}
-        className="flex items-center justify-center text-3xl drop-shadow-2xl"
+        className="flex flex-col shadow-2xl"
         >
-            ⚰️
+            {/* Coffin Lid */}
+            <div className="w-full h-full bg-[#5d4037] border-4 border-[#3e2723] relative rounded-t-xl rounded-b-md flex items-center justify-center">
+                <div className="w-20 h-32 absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                {/* Cross */}
+                <div className="flex flex-col items-center opacity-70">
+                    <div className="w-2 h-12 bg-[#e4b85d]"></div>
+                    <div className="w-8 h-2 bg-[#e4b85d] absolute top-8"></div>
+                </div>
+            </div>
         </div>
 
         {/* --- PLAYER --- */}
@@ -58,11 +66,11 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({ player, directorPh
             <div className="absolute -top-8 text-[8px] bg-black/40 px-1 rounded text-white whitespace-nowrap scale-[0.6]">You</div>
         </div>
 
-        {/* --- PRIEST (x=8, y=4) --- */}
+        {/* --- PRIEST (x=19, y=8) - Behind Altar --- */}
         <div 
         style={{
             width: TILE_SIZE, height: TILE_SIZE,
-            position: 'absolute', left: 8 * TILE_SIZE, top: 4 * TILE_SIZE,
+            position: 'absolute', left: 19 * TILE_SIZE, top: 6 * TILE_SIZE, // Adjusted to be behind altar
             zIndex: 15
         }}
         className="flex items-center justify-center"
@@ -93,11 +101,11 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({ player, directorPh
             )}
         </div>
 
-        {/* --- RECEPTIONIST (x=10, y=20) --- */}
+        {/* --- RECEPTIONIST (x=25, y=20) --- */}
         <div 
         style={{
             width: TILE_SIZE, height: TILE_SIZE,
-            position: 'absolute', left: 10 * TILE_SIZE, top: 20 * TILE_SIZE,
+            position: 'absolute', left: 25 * TILE_SIZE, top: 20 * TILE_SIZE,
             zIndex: 15
         }}
         className="flex items-center justify-center"
@@ -109,10 +117,10 @@ export const WorldEntities: React.FC<WorldEntitiesProps> = ({ player, directorPh
             </div>
         </div>
 
-        {/* --- NOTICE BOARD DECAL (x=4, y=18) --- */}
+        {/* --- NOTICE BOARD DECAL (x=16, y=17 wall) --- */}
         <div
         style={{
-            position: 'absolute', left: 4 * TILE_SIZE, top: 18 * TILE_SIZE,
+            position: 'absolute', left: 16 * TILE_SIZE, top: 16 * TILE_SIZE,
             width: TILE_SIZE, height: TILE_SIZE, zIndex: 5
         }}
         className="flex items-center justify-center"

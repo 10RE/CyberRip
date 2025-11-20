@@ -8,10 +8,14 @@ export enum TileType {
   TOMBSTONE = 5,  // Static tombstone tile
   ALTAR = 6,      // Church altar
   WATER = 7,      // Fountain water
-  CHAIR = 8,      // Pews/Chairs
+  CHAIR = 8,      // Generic Chair (Unused now, using BENCH)
   CARPET = 9,     // Red carpet
   PATH = 10,      // Stone path
-  DESK = 11       // Reception desk
+  DESK = 11,      // Reception desk
+  BENCH = 12,     // Church Pews
+  TREE = 13,      // Nature
+  FLOWER = 14,    // Nature
+  CANDLE = 15     // Light source
 }
 
 export interface Position {

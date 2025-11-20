@@ -7,7 +7,7 @@ const PLAYER_HITBOX_SIZE = 24;
 
 export const useGameLoop = (map: GameMap, paused: boolean) => {
   const [player, setPlayer] = useState<PlayerState>({
-    pos: { x: 8 * TILE_SIZE, y: 26 * TILE_SIZE }, // Start at entrance
+    pos: { x: 19 * TILE_SIZE, y: 26 * TILE_SIZE }, // Start at new Main Entrance (South)
     direction: 'up',
     isMoving: false,
     isSitting: false,
@@ -92,7 +92,8 @@ export const useGameLoop = (map: GameMap, paused: boolean) => {
                     if (tx < 0 || tx >= MAP_WIDTH || ty < 0 || ty >= MAP_HEIGHT) return true;
                     
                     const tile = map.tiles[ty][tx];
-                    if (tile === TileType.WALL || tile === TileType.DESK || tile === TileType.WATER) return true;
+                    // Wall and Desk block movement. Doors, Water, etc are walkable (though logic might vary for water)
+                    if (tile === TileType.WALL || tile === TileType.DESK) return true;
                 }
                 return false;
             };
