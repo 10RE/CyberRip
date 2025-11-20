@@ -3,15 +3,24 @@ export enum TileType {
   WALL = 1,
   GRASS = 2,
   DOOR = 3,
-  COFFIN = 4,
+  // COFFIN removed as tile, will be an entity
   TOMBSTONE = 5,
   ALTAR = 6,
-  WATER = 7
+  WATER = 7,
+  CHAIR = 8
 }
 
 export interface Position {
   x: number;
   y: number;
+}
+
+export interface CharacterAppearance {
+  hatColor: string;
+  shirtColor: string;
+  pantsColor: string;
+  skinColor: string;
+  hasHat: boolean;
 }
 
 export interface FuneralData {
@@ -27,6 +36,8 @@ export interface PlayerState {
   pos: Position;
   direction: 'up' | 'down' | 'left' | 'right';
   isMoving: boolean;
+  isSitting: boolean;
+  appearance: CharacterAppearance;
 }
 
 export interface GameMap {
@@ -37,9 +48,16 @@ export interface GameMap {
 }
 
 export interface Interactable {
-  type: 'coffin' | 'tombstone' | 'priest' | 'fountain';
+  type: 'coffin' | 'tombstone' | 'priest' | 'fountain' | 'chair';
   message?: string;
   id: string;
+}
+
+export enum DirectorPhase {
+  IDLE = 'idle',
+  PREACHING = 'preaching',
+  AMEN = 'amen',
+  BURIAL = 'burial'
 }
 
 export const TILE_SIZE = 48;
