@@ -1,13 +1,17 @@
+
 export enum TileType {
-  FLOOR = 0,
-  WALL = 1,
-  GRASS = 2,
-  DOOR = 3,
-  // COFFIN removed as tile, will be an entity
-  TOMBSTONE = 5,
-  ALTAR = 6,
-  WATER = 7,
-  CHAIR = 8
+  FLOOR = 0,      // Standard wood floor
+  WALL = 1,       // Brick/Wood wall
+  GRASS = 2,      // Textured grass
+  DOOR = 3,       // Doorways
+  // Coffin is an Entity, not a tile
+  TOMBSTONE = 5,  // Static tombstone tile
+  ALTAR = 6,      // Church altar
+  WATER = 7,      // Fountain water
+  CHAIR = 8,      // Pews/Chairs
+  CARPET = 9,     // Red carpet
+  PATH = 10,      // Stone path
+  DESK = 11       // Reception desk
 }
 
 export interface Position {
@@ -26,7 +30,7 @@ export interface CharacterAppearance {
 export interface FuneralData {
   id: string;
   deceasedName: string;
-  causeOfDeath: string; // Usually funny/metaphorical
+  causeOfDeath: string; 
   eulogy: string;
   timestamp: number;
   attendees: number;
@@ -48,7 +52,7 @@ export interface GameMap {
 }
 
 export interface Interactable {
-  type: 'coffin' | 'tombstone' | 'priest' | 'fountain' | 'chair';
+  type: 'coffin' | 'tombstone' | 'priest' | 'fountain' | 'chair' | 'receptionist' | 'notice_board';
   message?: string;
   id: string;
 }
@@ -61,5 +65,5 @@ export enum DirectorPhase {
 }
 
 export const TILE_SIZE = 48;
-export const MAP_WIDTH = 20;
-export const MAP_HEIGHT = 15;
+export const MAP_WIDTH = 40;
+export const MAP_HEIGHT = 30;

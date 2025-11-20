@@ -1,12 +1,11 @@
+
 import { GoogleGenAI } from "@google/genai";
 
-// Ensure API key is available
-const apiKey = process.env.API_KEY || '';
-
-const ai = new GoogleGenAI({ apiKey });
+// Initialize the client with the API key directly from the environment variable as per guidelines.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateWittyEulogy = async (name: string, cause: string): Promise<string> => {
-  if (!apiKey) {
+  if (!process.env.API_KEY) {
     return `Here lies ${name}. They died of ${cause}. The AI is offline, so insert your own joke here.`;
   }
 
@@ -31,7 +30,7 @@ export const generateWittyEulogy = async (name: string, cause: string): Promise<
 };
 
 export const generateTombstoneInscription = async (): Promise<string> => {
-    if (!apiKey) return "404: Life Not Found.";
+    if (!process.env.API_KEY) return "404: Life Not Found.";
 
     try {
         const prompt = "Write a funny, 10-word maximum epitaph for a random gravestone in a pixel art game.";
